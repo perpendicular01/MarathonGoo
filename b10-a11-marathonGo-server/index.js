@@ -146,7 +146,26 @@ async function run() {
         })
         
        
-       
+        
+
+        // delete application by id
+        app.delete('/deleteApplication/:id', async (req, res) => {
+            const id = req.params.id;
+            // console.log(id)
+
+            const query = { marathonId: id }
+
+            try {
+                const result = await applyCollection.deleteMany(query)
+                res.send(result)
+            }
+            catch {
+                res.status(500).send({
+                    error: "delete marathon falied"
+                })
+            }
+        })
+
 
 
     } finally {
