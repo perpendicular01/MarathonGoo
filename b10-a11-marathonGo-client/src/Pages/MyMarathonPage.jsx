@@ -1,0 +1,200 @@
+import React, { useContext, useEffect, useState } from "react";
+import { AuthContext } from "../Contexts/AuthProvider";
+import Swal from "sweetalert2";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { Link } from "react-router-dom";
+import { Helmet } from "react-helmet";
+
+const MyMarathonPage = () => {
+    const [marathons, setMarathons] = useState([]);
+    const { user } = useContext(AuthContext);
+    const [selectedMarathon, setSelectedMarathon] = useState(null);
+    const [image, setImage] = useState([])
+    const [startRegDate, setStartRegDate] = useState(new Date());
+    const [endRegDate, setEndRegDate] = useState(new Date());
+    const [marathonDate, setMarathonDate] = useState(new Date());
+    const [error, setError] = useState([])
+
+    // const [error, setError] = useState("");
+
+  
+    return (
+        <div>
+            <Helmet>
+                <title> My Marathons </title>
+            </Helmet>
+
+            <h2 className="text-xl md:text-2xl lg:text-3xl font-bold text-red-950 underline pt-20 lg:pt-28 pb-8 ml-4 lg:ml-12">
+                My Marathons:
+            </h2>
+            <div className="w-[90%] mx-auto mb-40">
+                {/* Marathon Table */}
+                <div className="overflow-x-auto bg-white text-black">
+                    <table className="table">
+                        <thead>
+                            <tr className="text-black text-opacity-85 text-base lg:text-lg">
+                                <th></th>
+                                <th>Title</th>
+                                <th>Distance</th>
+                                <th>Location</th>
+                                <th>Marathon Date</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {marathons.map((it, index) => (
+                                <tr key={it._id} className="text-sm md:text-base text-black text-opacity-90">
+                                    <th>{index + 1}</th>
+                                    <td>{it.title}</td>
+                                    <td>{it.runningDistance}</td>
+                                    <td>{it.location}</td>
+                                    <td>{new Date(it.marathonStartDate).toISOString().split("T")[0]}</td>
+                                    <td>
+                                        <button
+                                            className="bg-blue-700 hover:bg-blue-300 hover:text-black px-3 py-1 rounded-md text-white font-medium"
+                                            onClick={() => openUpdateModal(it)}
+                                        >
+                                            Update
+                                        </button>
+                                    </td>
+                                    <td>
+                                        <Link>
+                                            <button onClick={() => handleDeleteMarathon(it._id)} className="bg-red-700 hover:bg-red-300 hover:text-black  px-3 py-1 rounded-md text-white font-medium">
+                                                delete
+                                            </button>
+                                        </Link>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+
+                {/* Update Modal */}
+                <dialog id="update_modal" className="modal modal-bottom sm:modal-middle">
+                    <div className="modal-box">
+                        <h3 className="font-bold text-lg text-center">Update Marathon</h3>
+                        {selectedMarathon && (
+                            <form onSubmit={handleUpdateMarathon} className="card-body">
+                                <div className="form-control w-full mt-1">
+                                    <label className="label mb-2">
+                                        <span className="label-text text-black text-lg">Marathon Title</span>
+                                    </label>
+                                    <input
+                                        name="title"
+                                        type="text"
+                                        className="input input-bordered w-full"
+                                        defaultValue={selectedMarathon.title}
+                                        required
+                                    />
+                                </div>
+
+                                <div className="form-control w-full mt-1">
+                                    <label className="label mb-1">
+                                        <span className="label-text text-black text-lg">Photo Url</span>
+                                    </label>
+                                    <input
+                                        name="marathonImage"
+                                        type="text"
+                                        className="input input-bordered w-full"
+                                        defaultValue={selectedMarathon.marathonImage}
+                                        required
+                                    />
+                                </div>
+
+                                <div className="form-control w-full mt-1">
+                                    <label className="label mb-1">
+                                        <span className="label-text text-black text-lg">Location</span>
+                                    </label>
+                                    <input
+                                        name="location"
+                                        type="text"
+                                        className="input input-bordered w-full"
+                                        defaultValue={selectedMarathon.location}
+                                        required
+                                    />
+                                </div>
+
+                                <div className="form-control w-full mt-1">
+                                    <label className="label mb-1">
+                                        <span className="label-text text-black text-lg">Running Distance</span>
+                                    </label>
+                                    <select name="runningDistance" className="input input-bordered w-full" defaultValue={selectedMarathon.runningDistance} required>
+                                        <option value="25k">25k</option>
+                                        <option value="10k">10k</option>
+                                        <option value="3k">3k</option>
+                                    </select>
+                                </div>
+
+                                <div className="flex justify-between mt-1">
+                                    <div className="form-control w-[32%]">
+                                        <label className="label mb-1">
+                                            <span className="label-text text-black text-lg">Start Reg.</span>
+                                        </label>
+                                        <DatePicker
+                                            selected={startRegDate}
+                                            onChange={setStartRegDate}
+                                            className="input input-bordered w-full"
+                                            placeholderText="Select Date"
+                                            required
+                                        />
+                                    </div>
+                                    <div className="form-control w-[32%]">
+                                        <label className="label mb-1">
+                                            <span className="label-text text-black text-lg">End Reg.</span>
+                                        </label>
+                                        <DatePicker
+                                            selected={endRegDate}
+                                            onChange={setEndRegDate}
+                                            className="input input-bordered w-full"
+                                            placeholderText="Select Date"
+                                            required
+                                        />
+                                    </div>
+                                    <div className="form-control w-[32%]">
+                                        <label className="label mb-1">
+                                            <span className="label-text text-black text-lg">Marathon Date</span>
+                                        </label>
+                                        <DatePicker
+                                            selected={marathonDate}
+                                            onChange={setMarathonDate}
+                                            className="input input-bordered w-full"
+                                            placeholderText="Select Date"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="form-control w-full mt-1">
+                                    <label className="label mb-2">
+                                        <span className="label-text text-black text-lg">Description</span>
+                                    </label>
+                                    <textarea
+                                        name="description"
+                                        className="border-[1px] border-black border-opacity-15 rounded-lg p-6 w-full"
+                                        placeholder="Enter marathon description"
+                                        defaultValue={selectedMarathon.description}
+                                        required
+                                    ></textarea>
+                                </div>
+
+                                <div className="modal-action">
+                                    <button type="submit"  className="px-6 py-2 rounded-xl text-white bg-blue-700">
+                                        Update
+                                    </button>
+                                    <button className="btn" onClick={closeUpdateModal}>
+                                        Close
+                                    </button>
+
+                                </div>
+                            </form>
+                        )}
+                    </div>
+                </dialog>
+            </div>
+        </div>
+    );
+};
+
+export default MyMarathonPage;
