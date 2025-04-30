@@ -18,7 +18,143 @@ const MyMarathonPage = () => {
 
     // const [error, setError] = useState("");
 
-  
+    useEffect(() => {
+        if (!user?.email) return;
+
+        const fetchMarathons = async () => {
+            const res = await fetch(`http://localhost:5000/myMarathons?email=${user.email}`);
+            const data = await res.json();
+            setMarathons(data);
+        };
+        fetchMarathons();
+    }, [user]);
+
+    const openUpdateModal = (marathon) => {
+        setSelectedMarathon(marathon);
+        setStartRegDate(new Date(marathon.startRegistrationDate));
+        setEndRegDate(new Date(marathon.endRegistrationDate));
+        setMarathonDate(new Date(marathon.marathonStartDate));
+        setImage(marathon.marathonImage)
+
+        document.getElementById("update_modal").showModal();
+    };
+
+    const closeUpdateModal = () => {
+        document.getElementById("update_modal").close();
+        setSelectedMarathon(null);
+        setStartRegDate(new Date());
+        setEndRegDate(new Date());
+        setMarathonDate(new Date());
+        setImage("");
+        setError("");
+    };
+
+
+    const handleUpdateMarathon = async (e) => {
+        e.preventDefault();
+        if (!selectedMarathon) return;
+    
+        const form = new FormData(e.target);
+        const updatedTitle = form.get("title");
+        const updatedLocation = form.get("location");
+        const updatedRunningDistance = form.get("runningDistance");
+        const updatedDescription = form.get("description");
+        const updatedMarathonImage = form.get("marathonImage");
+    
+        if (!startRegDate || !endRegDate || !marathonDate) {
+            setError("Please select all dates.");
+            return;
+        }
+    
+        const updatedMarathon = {
+            title: updatedTitle,
+            location: updatedLocation,
+            runningDistance: updatedRunningDistance,
+            description: updatedDescription,
+            marathonImage: updatedMarathonImage,
+            startRegistrationDate: startRegDate.toISOString(),
+            endRegistrationDate: endRegDate.toISOString(),
+            marathonStartDate: marathonDate.toISOString(),
+        };
+    
+        try {
+            const res1 = await fetch(`http://localhost:5000/marathons/${selectedMarathon._id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(updatedMarathon),
+            });
+    
+            const res2 = await fetch(`http://localhost:5000/updateUsersMarathon/${selectedMarathon._id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(updatedMarathon),
+            });
+    
+            if (res1.ok && res2.ok) {
+                Swal.fire({
+                    title: "Marathon updated successfully!",
+                    icon: "success",
+                });
+    
+                setMarathons(
+                    marathons.map((m) =>
+                        m._id === selectedMarathon._id ? { ...m, ...updatedMarathon } : m
+                    )
+                );
+    
+                closeUpdateModal();
+            } else {
+                setError("Failed to update marathon. Please try again.");
+            }
+        } catch (error) {
+            setError("Failed to update marathon. Please try again.");
+        }
+    };
+    
+
+    const handleDeleteMarathon = async (id) => {
+
+        const alert = await Swal.fire({
+            title: "Are you sure?",
+            text: "You can not be able to restore this",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "delete it"
+        });
+
+        if (alert.isConfirmed) {
+            
+
+            const res1 = await fetch(`http://localhost:5000/deleteMarathons/${id}`, {
+                method: 'DELETE',
+            });
+
+
+            const res2 = await fetch(`http://localhost:5000/deleteApplication/${id}`, {
+                method: 'DELETE',
+            })
+
+            if (res1.ok && res2.ok) {
+                setMarathons(marathons.filter(it => it._id !== id));
+                await Swal.fire({
+                    icon: "success",
+                    title: "Deleted!",
+                    text: "Your Marathon has been deleted",
+    
+                });
+            }
+            else {
+                Swal.fire({
+                    title: "Error",
+                    text: "Failed to delete the Marathon.",
+                    icon: "error",
+                });
+            }
+        }
+    }
+
     return (
         <div>
             <Helmet>
