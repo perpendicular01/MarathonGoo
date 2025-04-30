@@ -107,7 +107,106 @@ async function run() {
         })
 
 
-       
+        // UPDATE A marathon
+        app.put("/marathons/:id", async (req, res) => {
+            const id = req.params.id;
+            const marathon = req.body
+
+
+            const filter = { _id: new ObjectId(id) }
+            const options = { upsert: true }
+            const updatedMarathon = {
+                $set: {
+                    title : marathon.title,
+                    location : marathon.location,
+                    runningDistance : marathon.runningDistance,
+                    description : marathon.description,
+                    marathonImage : marathon.marathonImage,
+                    startRegistrationDate : marathon.startRegistrationDate,
+                    endRegistrationDate : marathon.endRegistrationDate,
+                    marathonStartDate : marathon.marathonStartDate,
+                    // component gula bosabo
+                    
+                }
+            }
+            // console.log(id, updatedmarathon)
+
+            try {
+                const result = await marathonCollection.updateOne(filter, updatedMarathon, options)
+                res.send(result)
+            }
+            catch {
+                res.status(500).send({
+                    error: "update marathon falied"
+                })
+            }
+        })
+
+        // update patch version
+        app.patch("/marathons/:id", async (req, res) => {
+            const id = req.params.id;
+
+            const filter = { _id: new ObjectId(id) };
+            const updateOperation = {
+                $inc: { totalRegistrationCount: 1 }, // Increment count by 1
+            };
+
+            try {
+                const result = await marathonCollection.updateOne(filter, updateOperation);
+
+                if (result.matchedCount === 0) {
+                    return res.status(404).send({ error: "Marathon not found" });
+                }
+
+                res.send({ message: "Registration count updated successfully", result });
+            } catch (error) {
+                console.error("Error updating marathon:", error);
+                res.status(500).send({ error: "Failed to update marathon" });
+            }
+        });
+
+        // decrement 
+        app.patch("/decrementApplicant/:id", async (req, res) => {
+            const id = req.params.id;
+
+            const filter = { _id: new ObjectId(id) };
+            const updateOperation = {
+                $inc: { totalRegistrationCount: -1 }, // Increment count by 1
+            };
+
+            try {
+                const result = await marathonCollection.updateOne(filter, updateOperation);
+
+                if (result.matchedCount === 0) {
+                    return res.status(404).send({ error: "Marathon not found" });
+                }
+
+                res.send({ message: "Registration count updated successfully", result });
+            } catch (error) {
+                console.error("Error updating marathon:", error);
+                res.status(500).send({ error: "Failed to update marathon" });
+            }
+        });
+
+
+        // DELETE A marathon
+        app.delete('/deleteMarathons/:id', async (req, res) => {
+            const id = req.params.id;
+            // console.log(id)
+
+            const query = { _id: new ObjectId(id) }
+
+            try {
+                const result = await marathonCollection.deleteOne(query)
+                res.send(result)
+            }
+            catch {
+                res.status(500).send({
+                    error: "delete marathon falied"
+                })
+            }
+        })
+
         // -----------------------------------------------------------------------------
 
         // ------------------------.............applications.............................
@@ -146,7 +245,6 @@ async function run() {
         })
         
        
-        
 
         // delete application by id
         app.delete('/deleteApplication/:id', async (req, res) => {
@@ -166,6 +264,7 @@ async function run() {
             }
         })
 
+        
 
 
     } finally {
