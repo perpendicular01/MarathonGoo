@@ -244,7 +244,20 @@ async function run() {
             }
         })
         
-       
+        app.get("/checkRegistration", async (req, res) => {
+            const { email, marathonId } = req.query;
+        
+            try {
+
+                const query = { email: email, marathonId };
+                const existingRegistration = await applyCollection.findOne(query);
+                res.send({ isRegistered: !!existingRegistration });
+            } catch (error) {
+                console.error("Error checking registration:", error);
+                res.status(500).json({ error: "Internal server error" });
+            }
+        });
+        
 
         // delete application by id
         app.delete('/deleteApplication/:id', async (req, res) => {
