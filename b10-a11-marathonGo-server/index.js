@@ -277,7 +277,67 @@ async function run() {
             }
         })
 
-        
+        //   update application
+        app.put("/updateUsersApplication/:id", async (req, res) => {
+            const id = req.params.id;
+            const application = req.body
+
+
+            const filter = {_id: new ObjectId(id)}
+            const options = { upsert: true }
+            const updatedApplication = {
+                $set: {
+                    // component gula bosabo
+                    firstName : application.firstName,
+                    lastName : application.lastName,
+                    contactNumber : application.contactNumber,
+                    additionalInfo : application.additionalInfo,
+
+                }
+            }
+            // console.log(id, updatedmarathon)
+
+            try {
+                const result = await applyCollection.updateOne(filter, updatedApplication, options)
+                res.send(result)
+            }
+            catch {
+                res.status(500).send({
+                    error: "update Application falied"
+                })
+            }
+        })
+
+
+        app.put("/updateUsersMarathon/:id", async (req, res) => {
+            const id = req.params.id;
+            const marathon = req.body
+
+
+            const filter = {_id: new ObjectId(id)}
+            const options = { upsert: true }
+            const updatedApplication = {
+                $set: {
+                    // component gula bosabo
+                    distance : marathon.runningDistance,
+                    location : marathon.location,
+                    marathonTitle : marathon.title,
+                    startDate : marathon.marathonStartDate,
+
+                }
+            }
+            // console.log(id, updatedmarathon)
+
+            try {
+                const result = await applyCollection.updateOne(filter, updatedApplication, options)
+                res.send(result)
+            }
+            catch {
+                res.status(500).send({
+                    error: "update Application falied"
+                })
+            }
+        })
 
 
     } finally {
